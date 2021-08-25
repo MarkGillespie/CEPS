@@ -27,7 +27,7 @@ If this code contributes to academic work, please cite as:
 ##  Getting started
 On mac/linux, you can set up this project with the following commands.
 ```bash
-git clone --recursive git@github.com:MarkGillespie/CEPS.git
+git clone --recursive https://github.com/MarkGillespie/CEPS.git
 cd CEPS
 mkdir build
 cd build
