@@ -31,7 +31,8 @@ hemisphericalUniformize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
 SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
                                                   VertexPositionGeometry& geo,
                                                   Vertex vInfinity = Vertex(),
-                                                  bool viz         = false);
+                                                  bool viz         = false,
+                                                  bool verbose     = false);
 
 //== The spherical uniformization energy
 double sphericalObjective(PartiallyDecoratedTriangulation& tri);
@@ -55,6 +56,7 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
                                  Triangulation& Tc,
                                  const VertexData<Vector3>& initialPositions,
                                  const VertexData<Vector3>& sphericalPositions,
-                                 const std::set<Face>& frontFaces);
+                                 const std::set<Face>& frontFaces,
+                                 bool verbose = false);
 } // namespace ImplementationDetails
 } // namespace CEPS

@@ -25,7 +25,8 @@ class Optimizer {
 
     bool uniformize(std::vector<Vertex> fixed, double tol = 1e-5);
 
-    bool verbose = false;
+    bool verbose      = false;
+    bool extraVerbose = false;
 
   protected:
     Triangulation& tri;

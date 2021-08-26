@@ -45,10 +45,10 @@ CornerData<Vector2> layOutTriangulation(Triangulation& tri,
         ImplementationDetails::indexCorners(*tri.mesh, cut);
 
     // Check that cut mesh is a topological disk
-    int cutEulerCharacteristic = 0;
-    cutEulerCharacteristic =
-        nV + tri.mesh->nFaces() - tri.mesh->nEdges() - cut.size();
-    WATCH(cutEulerCharacteristic);
+    // int cutEulerCharacteristic = 0;
+    // cutEulerCharacteristic =
+    //     nV + tri.mesh->nFaces() - tri.mesh->nEdges() - cut.size();
+    // WATCH(cutEulerCharacteristic);
 
 
     // Build Laplacian for the cut mesh

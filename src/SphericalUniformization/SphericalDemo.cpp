@@ -20,6 +20,7 @@ using namespace CEPS;
 //== Input data
 std::unique_ptr<ManifoldSurfaceMesh> mesh;
 std::unique_ptr<VertexPositionGeometry> geometry;
+bool verbose = false;
 
 //== Result data
 SphericalUniformizationResult result;
@@ -36,7 +37,7 @@ static char meshSaveName[IM_STR_LEN];
 void myCallback() {
     if (ImGui::Button("Uniformize")) {
         bool viz = true;
-        result   = sphericalUniformize(*mesh, *geometry, Vertex(), viz);
+        result = sphericalUniformize(*mesh, *geometry, Vertex(), viz, verbose);
         psMesh->setEnabled(false);
     }
 
@@ -65,6 +66,11 @@ int main(int argc, char** argv) {
     args::ValueFlag<std::string> outputLogFilename(
         parser, "string", "output log filename", {"outputLogFilename"});
     args::Flag viz(parser, "viz", "Use polyscope GUI", {"viz"});
+    args::ValueFlag<std::string> beVerbose(
+        parser, "verbose",
+        "[y/n] Print out progress information (default "
+        "true in GUI mode, false otherwise)",
+        {"verbose"});
     args::Flag version(parser, "version", "Display version number",
                        {'v', "version"});
     args::HelpFlag help(parser, "help", "Display this help menu",
@@ -93,10 +99,32 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    verbose = args::get(viz);
+    if (beVerbose) {
+        std::string verbosity = args::get(beVerbose);
+        std::transform(verbosity.begin(), verbosity.end(), verbosity.begin(),
+                       ::toupper);
+        if (verbosity == "Y" || verbosity == "TRUE") {
+            verbose = true;
+        } else if (verbosity == "N" || verbosity == "FALSE") {
+            verbose = false;
+        } else {
+            std::cout << "Unrecognized verbosity option '" << verbosity << "'"
+                      << std::endl;
+            std::cout << "\t please use true/false or y/n" << std::endl;
+            std::cout << parser;
+            return 1;
+        }
+    }
+
     std::string filename = args::get(meshFilename);
 
     // Load mesh
     std::tie(mesh, geometry) = loadMesh(filename);
+    verbose_assert(mesh->nConnectedComponents() == 1, "mesh must be connected");
+    verbose_assert(mesh->genus() == 0, "mesh must have genus 0 (but it is " +
+                                           std::to_string(mesh->genus()) + ")");
+    verbose_assert(mesh->nBoundaryLoops() == 0, "mesh must not have boundary");
 
     // center mesh
     Vector3 mean = Vector3::zero();
@@ -130,12 +158,6 @@ int main(int argc, char** argv) {
             mesh->getFaceVertexList(), polyscopePermutations(*mesh));
 
         std::cout << "Loaded mesh " << filename << std::endl;
-        std::cout << "nBoundaryLoops: " << mesh->nBoundaryLoops() << std::endl;
-        std::cout << "Genus: " << mesh->genus() << std::endl;
-        std::cout << "Euler characteristic: " << mesh->eulerCharacteristic()
-                  << std::endl;
-        std::cout << "Connected components: " << mesh->nConnectedComponents()
-                  << std::endl;
 
         // Give control to the polyscope gui
         polyscope::show();
@@ -168,7 +190,7 @@ int main(int argc, char** argv) {
         std::clock_t start = std::clock();
 
         bool viz = false;
-        result   = sphericalUniformize(*mesh, *geometry, Vertex(), viz);
+        result = sphericalUniformize(*mesh, *geometry, Vertex(), viz, verbose);
 
         duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 

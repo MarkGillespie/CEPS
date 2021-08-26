@@ -45,18 +45,21 @@ MeshPath traceEdge(Edge e1, Triangulation& T1, Triangulation& T2);
 
 // Trace T1 over T2
 EdgeData<MeshPath> traceTopologicalTriangulation(Triangulation& T1,
-                                                 Triangulation& T2);
+                                                 Triangulation& T2,
+                                                 bool verbose = false);
 
 // Trace T1 over T2
 EdgeData<MeshPath> traceGeodesicTriangulation(Triangulation& T1,
                                               Triangulation& T2,
-                                              GeometryType gType);
+                                              GeometryType gType,
+                                              bool verbose = false);
 
 // Trace T1 over T2, doing as much computation on T1 as possible
 // This turns out to be an easier problem in many instances
 EdgeData<MeshPath> traceTransposedGeodesicTriangulation(Triangulation& T1,
                                                         Triangulation& T2,
-                                                        GeometryType gType);
+                                                        GeometryType gType,
+                                                        bool verbose = false);
 
 // Straighten Euclidean geodesic over T
 void straightenEuclidean(MeshPath& curve, Triangulation& T);

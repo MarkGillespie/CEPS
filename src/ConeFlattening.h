@@ -33,21 +33,19 @@ struct ParameterizationResult {
 // If checkInjectivity is true, check the intrinsically-flattened mesh for
 // flipped triangles and report the results.
 // uTol is the maximum allowed area distortion in the greedy cone placement
-ParameterizationResult
-parameterizeWithGreedyCones(ManifoldSurfaceMesh& mesh,
-                            VertexPositionGeometry& geo, bool viz = false,
-                            bool checkInjectivity = false, double uTol = 5);
+ParameterizationResult parameterizeWithGreedyCones(
+    ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo, bool viz = false,
+    bool checkInjectivity = false, double uTol = 5, bool verbose = false);
 
 // Uniformize, setting u=0 at given cone vertices and any additional
 // boundary vertices.
 // If viz is true, register the resulting textured mesh with polyscope.
 // If checkInjectivity is true, check the intrinsically-flattened mesh for
 // flipped triangles and report the results.
-ParameterizationResult
-parameterizeWithGivenCones(ManifoldSurfaceMesh& mesh,
-                           VertexPositionGeometry& geo,
-                           const std::vector<Vertex>& coneVertices,
-                           bool viz = false, bool checkInjectivity = false);
+ParameterizationResult parameterizeWithGivenCones(
+    ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
+    const std::vector<Vertex>& coneVertices, bool viz = false,
+    bool checkInjectivity = false, bool verbose = false);
 
 // Uniformize, imposing the prescribed scale factors and curvatures.
 // A vertex may not have both a prescribed scale factor and a prescribed
@@ -62,7 +60,7 @@ parameterize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
              std::vector<std::pair<Vertex, double>> prescribedScaleFactors,
              std::vector<std::pair<Vertex, double>> prescribedCurvatures,
              std::vector<size_t> imaginaryFaceIndices, bool viz = false,
-             bool checkInjectivity = false);
+             bool checkInjectivity = false, bool verbose = false);
 
 // The core uniformization algorithm.
 // The input mesh must have no boundary.
@@ -75,6 +73,6 @@ ParameterizationResult parameterizeHelper(
     std::vector<std::pair<Vertex, double>> prescribedScaleFactors,
     std::vector<std::pair<Vertex, double>> prescribedCurvatures,
     std::set<size_t> frontFaceIndices, bool viz = false,
-    bool checkInjectivity = false);
+    bool checkInjectivity = false, bool verbose = false);
 
 } // namespace CEPS

@@ -21,7 +21,7 @@ std::tuple<SimplePolygonMesh, std::vector<Vector3>, VertexData<int>>
 computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
                         const VertexData<Vector3>& vertexPositions,
                         const CornerData<Vector2>& uv,
-                        const std::set<Face>& frontFaces);
+                        const std::set<Face>& frontFaces, bool verbose = false);
 
 // Computes the common refinement, projective texture coordinates, vertex map,
 // and an interpolation matrix mapping values on Ta to the common refinement
@@ -32,7 +32,8 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
                                  Triangulation& Tc,
                                  const VertexData<Vector3>& vertexPositions,
                                  const CornerData<Vector2>& uv,
-                                 const std::set<Face>& frontFaces);
+                                 const std::set<Face>& frontFaces,
+                                 bool verbose = false);
 
 namespace ImplementationDetails {
 
@@ -73,7 +74,8 @@ std::tuple<SimplePolygonMesh, std::vector<T1>, std::vector<T2>, VertexData<int>>
 computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
                         const VertexData<T1>& initialData,
                         const CornerData<T2>& finalData,
-                        const std::vector<char>& frontFaces);
+                        const std::vector<char>& frontFaces,
+                        bool verbose = false);
 
 // ========================================================================
 //                      Helpers for SliceTri

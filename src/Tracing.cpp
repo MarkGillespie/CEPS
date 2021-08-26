@@ -100,23 +100,44 @@ MeshPath traceEdge(Edge e1, Triangulation& T1, Triangulation& T2) {
 
 // Trace T1 over T2
 EdgeData<MeshPath> traceTopologicalTriangulation(Triangulation& T1,
-                                                 Triangulation& T2) {
+                                                 Triangulation& T2,
+                                                 bool verbose) {
     EdgeData<MeshPath> tracedEdges(*T1.mesh);
+
+    size_t N  = T2.mesh->nEdges();
+    size_t iE = 0;
+    if (verbose) std::cout << "\t\ttracing edges | 0 / " << N;
+
+
     for (Edge e : T1.mesh->edges()) {
         tracedEdges[e] = traceEdge(e, T1, T2);
+        if (verbose)
+            std::cout << "\r\t\ttracing edges | " << ++iE << " / " << N
+                      << std::flush;
     }
+    if (verbose) std::cout << std::endl;
+
     return tracedEdges;
 }
 
 // Trace T1 over T2
 EdgeData<MeshPath> traceGeodesicTriangulation(Triangulation& T1,
                                               Triangulation& T2,
-                                              GeometryType gType) {
-    EdgeData<MeshPath> paths = traceTopologicalTriangulation(T1, T2);
+                                              GeometryType gType,
+                                              bool verbose) {
+    EdgeData<MeshPath> paths = traceTopologicalTriangulation(T1, T2, verbose);
+
+    size_t N  = T2.mesh->nEdges();
+    size_t iE = 0;
+    if (verbose) std::cout << "\t\tstraightening edges | 0 / " << N;
+
     switch (gType) {
     case GeometryType::EUCLIDEAN:
         for (Edge e : T1.mesh->edges()) {
             straightenEuclidean(paths[e], T2);
+            if (verbose)
+                std::cout << "\r\t\tstraightening edges | " << ++iE << " / "
+                          << N << std::flush;
         }
         break;
     case GeometryType::HYPERBOLIC:
@@ -127,9 +148,14 @@ EdgeData<MeshPath> traceGeodesicTriangulation(Triangulation& T1,
             if (!straighteningSucceeded)
                 straightenHyperbolicIteratively(paths[e], T2,
                                                 negativeScaleFactors);
+            if (verbose)
+                std::cout << "\r\t\tstraightening edges | " << ++iE << " / "
+                          << N << std::flush;
         }
         break;
     }
+    if (verbose) std::cout << std::endl;
+
     return paths;
 }
 
@@ -137,17 +163,26 @@ EdgeData<MeshPath> traceGeodesicTriangulation(Triangulation& T1,
 // This turns out to be an easier problem in many instances
 EdgeData<MeshPath> traceTransposedGeodesicTriangulation(Triangulation& T1,
                                                         Triangulation& T2,
-                                                        GeometryType gType) {
+                                                        GeometryType gType,
+                                                        bool verbose) {
     using ImplementationDetails::transpose;
 
-    EdgeData<MeshPath> pathsOnT2 = traceTopologicalTriangulation(T1, T2);
+    EdgeData<MeshPath> pathsOnT2 =
+        traceTopologicalTriangulation(T1, T2, verbose);
 
     EdgeData<MeshPath> pathsOnT1 = transpose(pathsOnT2, T1, T2);
+
+    size_t N  = T2.mesh->nEdges();
+    size_t iE = 0;
+    if (verbose) std::cout << "\t\tstraightening edges | 0 / " << N;
 
     switch (gType) {
     case GeometryType::EUCLIDEAN:
         for (Edge e : T2.mesh->edges()) {
             straightenEuclidean(pathsOnT1[e], T1);
+            if (verbose)
+                std::cout << "\r\t\tstraightening edges | " << ++iE << " / "
+                          << N << std::flush;
         }
         break;
     case GeometryType::HYPERBOLIC:
@@ -158,9 +193,13 @@ EdgeData<MeshPath> traceTransposedGeodesicTriangulation(Triangulation& T1,
                 straightenHyperbolic(pathsOnT1[e], T1, scaleFactors);
             if (!straighteningSucceeded)
                 straightenHyperbolicIteratively(pathsOnT1[e], T1, scaleFactors);
+            if (verbose)
+                std::cout << "\r\t\tstraightening edges | " << ++iE << " / "
+                          << N << std::flush;
         }
         break;
     }
+    if (verbose) std::cout << std::endl;
 
     return transpose(pathsOnT1, T2, T1);
 }

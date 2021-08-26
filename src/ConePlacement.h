@@ -20,7 +20,8 @@ namespace CEPS {
 std::vector<Vertex> placeCones(ManifoldSurfaceMesh& mesh,
                                IntrinsicGeometryInterface& geo, double uTol = 5,
                                size_t minNumCones           = 4,
-                               size_t gaussSeidelIterations = 4);
+                               size_t gaussSeidelIterations = 4,
+                               bool verbose                 = false);
 
 namespace ImplementationDetails {
 

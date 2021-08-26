@@ -3,8 +3,8 @@
 namespace CEPS {
 std::vector<Vertex> placeCones(ManifoldSurfaceMesh& mesh,
                                IntrinsicGeometryInterface& geo, double uTol,
-                               size_t minNumCones,
-                               size_t gaussSeidelIterations) {
+                               size_t minNumCones, size_t gaussSeidelIterations,
+                               bool verbose) {
 
     // We only place cones on interior vertices. If there aren't any, don't
     // place any cones
@@ -30,6 +30,8 @@ std::vector<Vertex> placeCones(ManifoldSurfaceMesh& mesh,
         return worstSoFar;
     };
 
+    if (verbose) std::cout << "\t computing initial greedy cones" << std::endl;
+
     // Place first cone by approximately uniformizing to a constant curvature
     // metric and picking the vertex with worst scale factor (We would flatten,
     // except you can't necessarily flatten with one cone)
@@ -51,6 +53,8 @@ std::vector<Vertex> placeCones(ManifoldSurfaceMesh& mesh,
         worstVertex = getWorstVertex(scaleFactors);
         cones.push_back(worstVertex);
     }
+
+    if (verbose) std::cout << "\t improving cones" << std::endl;
 
     // Improve cones by removing each cone and replacing it by the vertex with
     // the biggest scale factor

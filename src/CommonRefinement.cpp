@@ -6,7 +6,7 @@ std::tuple<SimplePolygonMesh, std::vector<Vector3>, VertexData<int>>
 computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
                         const VertexData<Vector3>& vertexPositions,
                         const CornerData<Vector2>& uv,
-                        const std::set<Face>& frontFaces) {
+                        const std::set<Face>& frontFaces, bool verbose) {
 
     CornerData<Vector3> homogeneousUV(*Tc.mesh);
     for (Corner c : Tc.mesh->corners()) {
@@ -33,7 +33,7 @@ computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
     std::tie(commonRefinement, refinedVertexPositions, refinedHomogeneousUV,
              refinedVertices) =
         ImplementationDetails::computeCommonRefinement(
-            Ta, Tb, Tc, vertexPositions, homogeneousUV, isFrontFace);
+            Ta, Tb, Tc, vertexPositions, homogeneousUV, isFrontFace, verbose);
 
     // TODO: strip unused vertices from the common refinement
 
@@ -48,7 +48,8 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
                                  Triangulation& Tc,
                                  const VertexData<Vector3>& vertexPositions,
                                  const CornerData<Vector2>& uv,
-                                 const std::set<Face>& frontFaces) {
+                                 const std::set<Face>& frontFaces,
+                                 bool verbose) {
 
     using ImplementationDetails::computeCommonRefinement;
     using ImplementationDetails::Doublet;
@@ -91,7 +92,7 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
     std::tie(commonRefinement, refinedInterpolation, refinedHomogeneousUV,
              refinedVertices) =
         computeCommonRefinement(Ta, Tb, Tc, trivialInterpolation, homogeneousUV,
-                                isFrontFace);
+                                isFrontFace, verbose);
 
     // Eventually we want to strip unused vertices, since for meshes where we
     // filter out faces (i.e. doubled meshes), we are left with unused vertices

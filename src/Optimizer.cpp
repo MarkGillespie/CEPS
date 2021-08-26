@@ -55,9 +55,11 @@ bool Optimizer::takeStep(Vector<double> stepDirVec, Vector<double> gradVec) {
     double targetDecrease   = stepDirVec.dot(gradVec);
 
     if (verbose) {
-        std::cout << "\t" << targetDecrease << "\t"
-                  << gradVec.lpNorm<Eigen::Infinity>()
-                  << "\t l2: " << gradVec.lpNorm<2>();
+        std::cout << "\t gradient l2 norm: " << gradVec.lpNorm<2>();
+        if (extraVerbose) {
+            std::cout << "\t" << targetDecrease << "\t "
+                      << gradVec.lpNorm<Eigen::Infinity>();
+        }
     }
 
     double stepInfinityNorm =
@@ -76,9 +78,11 @@ bool Optimizer::takeStep(Vector<double> stepDirVec, Vector<double> gradVec) {
     }
 
     if (verbose) {
-        std::cout << "\t" << stepSize
-                  << "\tstepNorm (l_infty): " << (stepDirVec * stepSize).norm()
-                  << std::endl;
+        if (extraVerbose) {
+            std::cout << "\t" << stepSize << "\tstepNorm (l_infty): "
+                      << (stepDirVec * stepSize).norm();
+        }
+        std::cout << std::endl;
     }
 
     return newF <= oldF + 1e-4 * stepSize * targetDecrease;
@@ -115,7 +119,7 @@ bool Optimizer::uniformize(std::vector<Vertex> fixed, double tol) {
 
 
     if (verbose) {
-        std::cout << "Initial objective: " << objective() << std::endl;
+        std::cout << "\tInitial objective: " << objective() << std::endl;
     }
 
     bool done         = grad.dot(grad) < tol;
@@ -124,7 +128,7 @@ bool Optimizer::uniformize(std::vector<Vertex> fixed, double tol) {
         SparseMatrix<double> H = hessian();
 
         if (verbose) {
-            std::cout << totalSteps << ": " << objective();
+            std::cout << "\t" << totalSteps << ": objective=" << objective();
         }
 
         Vector<double> step;
@@ -165,11 +169,11 @@ bool Optimizer::uniformize(std::vector<Vertex> fixed, double tol) {
     }
 
     if (verbose) {
-        std::cout << "Finished in " << totalSteps << " steps." << std::endl;
+        std::cout << "\tFinished in " << totalSteps << " steps." << std::endl;
         if (done) {
-            std::cout << "Converged!" << std::endl;
+            std::cout << "\tConverged!" << std::endl;
         } else {
-            std::cout << "Did not converge :'(" << std::endl;
+            std::cout << "\tDid not converge :'(" << std::endl;
         }
     }
 

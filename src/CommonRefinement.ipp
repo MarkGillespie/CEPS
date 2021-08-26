@@ -12,7 +12,7 @@ std::tuple<SimplePolygonMesh, std::vector<T1>, std::vector<T2>, VertexData<int>>
 computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
                         const VertexData<T1>& initialData,
                         const CornerData<T2>& finalData,
-                        const std::vector<char>& frontFace) {
+                        const std::vector<char>& frontFace, bool verbose) {
 
     auto isFrontFace = [&](size_t supportingFace) {
         return frontFace.empty() || frontFace[supportingFace];
@@ -23,13 +23,17 @@ computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
     std::vector<T2> interpolatedData;
     VertexData<int> refinedVertices(*Ta.mesh);
 
+    if (verbose) std::cout << "\t tracing Tc over Tb" << std::endl;
     EdgeData<MeshPath> edgesOnFinalTriangulation =
-        traceTransposedGeodesicTriangulation(Tb, Tc, GeometryType::HYPERBOLIC);
+        traceTransposedGeodesicTriangulation(Tb, Tc, GeometryType::HYPERBOLIC,
+                                             verbose);
 
+    if (verbose) std::cout << "\t tracing Ta over Tb" << std::endl;
     EdgeData<MeshPath> edgesOnOriginalTriangulation =
         ImplementationDetails::transpose(
-            traceGeodesicTriangulation(Ta, Tb, GeometryType::EUCLIDEAN), Ta,
-            Tb);
+            traceGeodesicTriangulation(Ta, Tb, GeometryType::EUCLIDEAN,
+                                       verbose),
+            Ta, Tb);
 
     // Make CornerData on original mesh for interpolation
     CornerData<DirectSum<T1, double>> posAndParentFace(*Ta.mesh);
@@ -54,7 +58,9 @@ computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
     for (Vertex v : Tb.mesh->vertices())
         supportingToOriginal[v] = Ta.mesh->vertex(vIdx[v]);
 
+    size_t nF = Tb.mesh->nFaces();
     size_t iF = 0;
+    if (verbose) std::cout << "\t subdividing faces";
     for (Face f : Tb.mesh->faces()) {
         std::array<std::vector<double>, 3> originalBary, finalBary;
 
@@ -80,11 +86,11 @@ computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
         std::vector<std::vector<T2>> newCornerData;
 
 
-        bool verbose = false;
+        bool verboseSlicing = false;
         std::tie(nNewVertices, slicedFaces, newCornerPositions, newCornerData) =
             sliceTri(originalBary, finalBary, originalCornerData,
                      finalCornerData, longSideOppositeOriginalData,
-                     longSideOppositeCornerData, verbose);
+                     longSideOppositeCornerData, verboseSlicing);
 
         std::vector<size_t> newVertexIndices;
         size_t firstNewVertex = vertices.size();
@@ -204,7 +210,10 @@ computeCommonRefinement(Triangulation& Ta, Triangulation& Tb, Triangulation& Tc,
         vertices.insert(std::end(vertices), std::begin(newVertexPositions),
                         std::end(newVertexPositions));
         iF++;
+        if (verbose)
+            std::cout << "\r\t subdividing faces " << iF << " / " << nF;
     }
+    if (verbose) std::cout << std::endl;
 
     std::vector<Vector3> dummyVertexPositions(vertices.size());
     SimplePolygonMesh soup(polygons, dummyVertexPositions);

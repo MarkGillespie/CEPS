@@ -13,7 +13,8 @@ hemisphericalUniformize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
 
 SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
                                                   VertexPositionGeometry& geo,
-                                                  Vertex vInfinity, bool viz) {
+                                                  Vertex vInfinity, bool viz,
+                                                  bool verbose) {
     using ImplementationDetails::computeCommonRefinementAndMatrix;
     using ImplementationDetails::layOutTriangulation;
     using ImplementationDetails::mobiusCenter;
@@ -60,6 +61,7 @@ SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
     // ==========================================
     //     Compute uniformizing scale factors
     // ==========================================
+    if (verbose) std::cout << "Computing optimal scale factors..." << std::endl;
     PetscWrapper optimizer(Tc, distancesToHorocycle, vInfinity.getIndex(),
                            std::numeric_limits<double>::infinity());
 
@@ -76,6 +78,7 @@ SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
     double duration;
 
     bool converged = optimizer.uniformize(argv.size(), argv.data());
+    if (verbose) std::cout << "\t...done" << std::endl;
 
     if (!converged) {
         std::cout << "Error: optimizer failed to converge" << vendl;
@@ -86,6 +89,8 @@ SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
     // ==========================================
     //              Map to sphere
     // ==========================================
+    if (verbose)
+        std::cout << "Computing centered map to sphere..." << std::endl;
     // Lay out in plane
     VertexData<Vector2> planeCoords = layOutTriangulation(Tc, vInfinity);
 
@@ -108,10 +113,12 @@ SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
         Tb.geo->vertexDualAreas.reinterpretTo(*Tc.mesh);
     sphericalCoords = mobiusCenter(*Tc.mesh, sphericalCoords, dualAreas);
     Tb.geo->unrequireVertexDualAreas();
+    if (verbose) std::cout << "\t...done" << std::endl;
 
     // ==========================================
     //             Common Refinement
     // ==========================================
+    if (verbose) std::cout << "Interpolating..." << std::endl;
 
     // Compute log scale factors for map from Tb -> sphere
 
@@ -145,7 +152,8 @@ SphericalUniformizationResult sphericalUniformize(ManifoldSurfaceMesh& mesh,
     std::tie(result.mesh, result.param, result.parentMap,
              result.interpolationMatrix) =
         computeCommonRefinementAndMatrix(Ta, Tb, Tc, vertexPositions,
-                                         sphericalCoords, frontFaces);
+                                         sphericalCoords, frontFaces, verbose);
+    if (verbose) std::cout << "\t...done" << std::endl;
 
     if (viz) {
         auto psSphere = polyscope::registerSurfaceMesh(
@@ -466,7 +474,8 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
                                  Triangulation& Tc,
                                  const VertexData<Vector3>& initialPositions,
                                  const VertexData<Vector3>& sphericalPositions,
-                                 const std::set<Face>& frontFaces) {
+                                 const std::set<Face>& frontFaces,
+                                 bool verbose) {
 
     using ImplementationDetails::computeCommonRefinement;
     using ImplementationDetails::Doublet;
@@ -510,7 +519,7 @@ computeCommonRefinementAndMatrix(Triangulation& Ta, Triangulation& Tb,
     std::tie(commonRefinement, refinedInterpolation,
              refinedHomogSphericalPositions, refinedVertices) =
         computeCommonRefinement(Ta, Tb, Tc, trivialInterpolation,
-                                homogSphericalPositions, isFrontFace);
+                                homogSphericalPositions, isFrontFace, verbose);
 
     // Eventually we want to strip unused vertices, since for meshes where we
     // filter out faces (i.e. doubled meshes), we are left with unused vertices

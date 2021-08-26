@@ -26,7 +26,8 @@ std::unique_ptr<VertexPositionGeometry> geometry;
 std::vector<size_t> imaginaryFaceIndices;
 std::vector<std::pair<Vertex, double>> prescribedCurvatures;
 std::vector<std::pair<Vertex, double>> prescribedScaleFactors;
-double uTol = 5; // maximum allowed area distortion in greedy cone placement
+double uTol  = 5; // maximum allowed area distortion in greedy cone placement
+bool verbose = false;
 
 //== Result data
 ParameterizationResult result;
@@ -45,7 +46,8 @@ void myCallback() {
         prescribedScaleFactors.clear();
         prescribedCurvatures.clear();
 
-        std::vector<Vertex> coneVertices = placeCones(*mesh, *geometry, uTol);
+        std::vector<Vertex> coneVertices =
+            placeCones(*mesh, *geometry, uTol, 4, 4, verbose);
 
         // list of cone indices, with a dummy second variable since polyscope
         // wants to render a function on the cones
@@ -69,7 +71,7 @@ void myCallback() {
         bool viz              = true;
         bool checkInjectivity = true;
         result = parameterizeWithGreedyCones(*mesh, *geometry, viz,
-                                             checkInjectivity, uTol);
+                                             checkInjectivity, uTol, verbose);
         psMesh->setEnabled(false);
 
         std::cout << "nInvertedTriangles: " << result.nFlippedTriangles
@@ -82,7 +84,7 @@ void myCallback() {
         bool checkInjectivity = true;
         result = parameterize(*mesh, *geometry, prescribedScaleFactors,
                               prescribedCurvatures, imaginaryFaceIndices, viz,
-                              checkInjectivity);
+                              checkInjectivity, verbose);
         psMesh->setEnabled(false);
 
         std::cout << "nInvertedTriangles: " << result.nFlippedTriangles
@@ -103,7 +105,6 @@ void myCallback() {
 }
 
 int main(int argc, char** argv) {
-
     // Configure the argument parser
     args::ArgumentParser parser("Conformal cone flattener");
     args::Positional<std::string> meshFilename(
@@ -135,6 +136,11 @@ int main(int argc, char** argv) {
         "e.g., polygonal boundary conditions",
         {"noFreeBoundary"});
     args::Flag viz(parser, "viz", "Use polyscope GUI", {"viz"});
+    args::ValueFlag<std::string> beVerbose(
+        parser, "verbose",
+        "[y/n] Print out progress information (default "
+        "true in GUI mode, false otherwise)",
+        {"verbose"});
     args::Flag version(parser, "version", "Display version number",
                        {'v', "version"});
     args::HelpFlag help(parser, "help", "Display this help menu",
@@ -161,6 +167,24 @@ int main(int argc, char** argv) {
         std::cout << "Please provide a mesh file as input." << std::endl;
         std::cout << parser;
         return 1;
+    }
+
+    verbose = args::get(viz);
+    if (beVerbose) {
+        std::string verbosity = args::get(beVerbose);
+        std::transform(verbosity.begin(), verbosity.end(), verbosity.begin(),
+                       ::toupper);
+        if (verbosity == "Y" || verbosity == "TRUE") {
+            verbose = true;
+        } else if (verbosity == "N" || verbosity == "FALSE") {
+            verbose = false;
+        } else {
+            std::cout << "Unrecognized verbosity option '" << verbosity << "'"
+                      << std::endl;
+            std::cout << "\t please use true/false or y/n" << std::endl;
+            std::cout << parser;
+            return 1;
+        }
     }
 
     std::string filename = args::get(meshFilename);
@@ -317,7 +341,7 @@ int main(int argc, char** argv) {
             bool checkInjectivity = logStats;
             result = parameterize(*mesh, *geometry, prescribedScaleFactors,
                                   prescribedCurvatures, imaginaryFaceIndices,
-                                  viz, checkInjectivity);
+                                  viz, checkInjectivity, verbose);
 
             duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         } else {
@@ -327,7 +351,7 @@ int main(int argc, char** argv) {
             bool checkInjectivity     = logStats;
             std::vector<Vertex> cones = placeCones(*mesh, *geometry, uTol);
             result = parameterizeWithGivenCones(*mesh, *geometry, cones, viz,
-                                                checkInjectivity);
+                                                checkInjectivity, verbose);
 
             duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         }

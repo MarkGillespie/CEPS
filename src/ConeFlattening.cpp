@@ -5,14 +5,19 @@ ParameterizationResult parameterizeWithGreedyCones(ManifoldSurfaceMesh& mesh,
                                                    VertexPositionGeometry& geo,
                                                    bool viz,
                                                    bool checkInjectivity,
-                                                   double uTol) {
-    return parameterizeWithGivenCones(mesh, geo, placeCones(mesh, geo, uTol),
-                                      viz, checkInjectivity);
+                                                   double uTol, bool verbose) {
+    if (verbose) std::cout << "placing cones..." << std::endl;
+    std::vector<Vertex> cones = placeCones(mesh, geo, uTol, 4, 4, verbose);
+    if (verbose) std::cout << "\t...done" << std::endl;
+    return parameterizeWithGivenCones(mesh, geo, cones, viz, checkInjectivity,
+                                      verbose);
 }
 
-ParameterizationResult parameterizeWithGivenCones(
-    ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
-    const std::vector<Vertex>& coneVertices, bool viz, bool checkInjectivity) {
+ParameterizationResult
+parameterizeWithGivenCones(ManifoldSurfaceMesh& mesh,
+                           VertexPositionGeometry& geo,
+                           const std::vector<Vertex>& coneVertices, bool viz,
+                           bool checkInjectivity, bool verbose) {
     std::vector<std::pair<Vertex, double>> prescribedScaleFactors;
     for (Vertex v : coneVertices) {
         prescribedScaleFactors.emplace_back(v, 0);
@@ -26,7 +31,7 @@ ParameterizationResult parameterizeWithGivenCones(
     }
 
     return parameterize(mesh, geo, prescribedScaleFactors, {}, {}, viz,
-                        checkInjectivity);
+                        checkInjectivity, verbose);
 }
 
 ParameterizationResult
@@ -34,7 +39,7 @@ parameterize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
              std::vector<std::pair<Vertex, double>> prescribedScaleFactors,
              std::vector<std::pair<Vertex, double>> prescribedCurvatures,
              std::vector<size_t> imaginaryFaceIndices, bool viz,
-             bool checkInjectivity) {
+             bool checkInjectivity, bool verbose) {
     if (mesh.nBoundaryLoops() == 0) { //== No boundary
 
         // == Identify front faces (all but the imaginary faces)
@@ -47,7 +52,7 @@ parameterize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
 
         return parameterizeHelper(mesh, geo, prescribedScaleFactors,
                                   prescribedCurvatures, frontFaceIndices, viz,
-                                  checkInjectivity);
+                                  checkInjectivity, verbose);
 
     } else { //== Mesh has boundary. We need to double the mesh
 
@@ -95,7 +100,8 @@ parameterize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
 
         return parameterizeHelper(*doubledMesh, *doubledGeometry,
                                   prescribedScaleFactors, prescribedCurvatures,
-                                  frontFaceIndices, viz, checkInjectivity);
+                                  frontFaceIndices, viz, checkInjectivity,
+                                  verbose);
     }
 }
 
@@ -103,7 +109,8 @@ ParameterizationResult parameterizeHelper(
     ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
     std::vector<std::pair<Vertex, double>> prescribedScaleFactors,
     std::vector<std::pair<Vertex, double>> prescribedCurvatures,
-    std::set<size_t> frontFaceIndices, bool viz, bool checkInjectivity) {
+    std::set<size_t> frontFaceIndices, bool viz, bool checkInjectivity,
+    bool verbose) {
 
     verbose_assert(mesh.nBoundaryLoops() == 0,
                    "parameterizeHelper only accepts closed meshes");
@@ -158,9 +165,12 @@ ParameterizationResult parameterizeHelper(
     Tc.setScaleFactors(u);
 
     Optimizer newton(Tc, targetAngleDefects);
+    newton.verbose = verbose;
 
     // Compute uniformizing scale factors, fixing u at the fixed vertices
+    if (verbose) std::cout << "Computing optimal scale factors..." << std::endl;
     bool converged = newton.uniformize(fixedVertices);
+    if (verbose) std::cout << "\t...done" << std::endl;
 
     if (!converged) {
         std::cout << "Error: optimizer failed to converge" << vendl;
@@ -175,7 +185,11 @@ ParameterizationResult parameterizeHelper(
 
     // Lay out triangles in plane to compute texture coordinates.
     // Normalize layout to have surface area 1
+    if (verbose)
+        std::cout << "Laying out intrinsically flat triangulation..."
+                  << std::endl;
     CornerData<Vector2> textureCoords = layOutTriangulation(Tc, conesTc, 1);
+    if (verbose) std::cout << "\t...done" << std::endl;
 
 
     // Assemble the output data
@@ -188,10 +202,12 @@ ParameterizationResult parameterizeHelper(
     }
 
     // Compute solution on common refinement, storing data in result
+    if (verbose) std::cout << "Interpolating..." << std::endl;
     std::tie(result.mesh, result.param, result.parentMap,
              result.interpolationMatrix) =
         computeCommonRefinementAndMatrix(Ta, Tb, Tc, vertexPositions,
-                                         textureCoords, frontFaces);
+                                         textureCoords, frontFaces, verbose);
+    if (verbose) std::cout << "\t...done" << std::endl;
 
     // TODO: convert parentmap to a map on the input mesh
     // TODO: fix interpolation matrix to work on doubled/filled meshes
