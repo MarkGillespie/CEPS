@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
 
     // Configure the argument parser
     args::ArgumentParser parser("spherical uniformization demo");
-    args::Positional<std::string> meshFilename(parser, "mesh",
-                                               "Mesh to be processed.");
+    args::Positional<std::string> meshFilename(
+        parser, "mesh", "Mesh to be processed (required).");
     args::ValueFlag<std::string> outputMeshFilename(
         parser, "string", "output mesh filename", {"outputMeshFilename"});
     args::ValueFlag<std::string> outputMatrixFilename(
@@ -65,6 +65,10 @@ int main(int argc, char** argv) {
     args::ValueFlag<std::string> outputLogFilename(
         parser, "string", "output log filename", {"outputLogFilename"});
     args::Flag viz(parser, "viz", "Use polyscope GUI", {"viz"});
+    args::Flag version(parser, "version", "Display version number",
+                       {'v', "version"});
+    args::HelpFlag help(parser, "help", "Display this help menu",
+                        {'h', "help"});
 
     // Parse args
     try {
@@ -78,8 +82,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    if (version) {
+        std::cout << "spherical_uniformize version 1.1" << std::endl;
+        return 0;
+    }
+
     if (!meshFilename) {
         std::cout << "Please provide a mesh file as input" << std::endl;
+        std::cout << parser;
         return 1;
     }
 

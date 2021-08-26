@@ -28,15 +28,6 @@ add_library(
 target_link_libraries(CEPS polyscope geometry-central)
 
 add_executable(
-  run
-  main.cpp
-)
-target_include_directories(run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-# borrow args.hxx directly from polyscope
-target_include_directories(run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../deps/polyscope/deps/args/")
-target_link_libraries(run polyscope geometry-central CEPS)
-
-add_executable(
   parameterize
   Parameterize.cpp
 )

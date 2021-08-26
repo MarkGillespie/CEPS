@@ -105,9 +105,9 @@ void myCallback() {
 int main(int argc, char** argv) {
 
     // Configure the argument parser
-    args::ArgumentParser parser("Geometry program");
-    args::Positional<std::string> meshFilename(parser, "mesh",
-                                               "Mesh to be processed.");
+    args::ArgumentParser parser("Conformal cone flattener");
+    args::Positional<std::string> meshFilename(
+        parser, "mesh", "Mesh to be processed (required).");
     args::ValueFlag<std::string> curvaturesFilename(
         parser, "string", "curvatures filename", {"curvatures"});
     args::ValueFlag<std::string> scaleFactorsFilename(
@@ -135,6 +135,10 @@ int main(int argc, char** argv) {
         "e.g., polygonal boundary conditions",
         {"noFreeBoundary"});
     args::Flag viz(parser, "viz", "Use polyscope GUI", {"viz"});
+    args::Flag version(parser, "version", "Display version number",
+                       {'v', "version"});
+    args::HelpFlag help(parser, "help", "Display this help menu",
+                        {'h', "help"});
 
     // Parse args
     try {
@@ -148,8 +152,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    if (version) {
+        std::cout << "parameterize version 1.1" << std::endl;
+        return 0;
+    }
+
     if (!meshFilename) {
-        std::cout << "Please provide a mesh file as input" << std::endl;
+        std::cout << "Please provide a mesh file as input." << std::endl;
+        std::cout << parser;
         return 1;
     }
 
@@ -269,8 +279,6 @@ int main(int argc, char** argv) {
         std::cout << "nBoundaryLoops: " << mesh->nBoundaryLoops() << std::endl;
         std::cout << "Genus: " << mesh->genus() << std::endl;
         std::cout << "Euler characteristic: " << mesh->eulerCharacteristic()
-                  << std::endl;
-        std::cout << "Connected components: " << mesh->nConnectedComponents()
                   << std::endl;
 
         // Give control to the polyscope gui

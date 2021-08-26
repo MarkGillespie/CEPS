@@ -56,6 +56,8 @@ The script takes a variety of arguments.
 |`--useExactCones`| Do not lump together nearby cones in the ffield input, if any. Cones prescribed via `--curvatures` or `--scaleFactors` are never lumped|
 |`--noFreeBoundary`| Do not impose minimal-area-distortion boundary conditions (useful, e.g. if prescribing polygonal boundary conditions with the `--curvatures` option)|
 |`--viz`| Show the GUI |
+|`--version`, `-v`| Version info |
+|`--help`, `-h`| Display help |
 
 ### File formats
 The input mesh may be an `obj`, `ply`, `off`, or `stl`.
@@ -98,6 +100,8 @@ Then you can spherically-uniformize meshes by running `bin/spherical_uniformize 
 |`--outputMatrixFilename=a_matrix.spmat`| File to save output interpolation matrix to |
 |`--outputLogFilename=a_log.tsv`| File to save logs (timing + injectivty) to |
 |`--viz`| Show the GUI |
+|`--version`, `-v`| Version info |
+|`--help`, `-h`| Display help |
 
 (Note that the output mesh file may not technically be a valid `obj` file, as we store texture coordinates with 4 components).
 
