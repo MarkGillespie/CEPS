@@ -35,6 +35,14 @@ void writeMeshWithProjectiveTextureCoords(const SimplePolygonMesh& mesh,
                                           const std::vector<Vector3>& pUV,
                                           std::ostream& out);
 
+void writeMeshWithOrdinaryTextureCoords(const SimplePolygonMesh& mesh,
+                                        const std::vector<Vector3>& pUV,
+                                        std::string filename);
+
+void writeMeshWithOrdinaryTextureCoords(const SimplePolygonMesh& mesh,
+                                        const std::vector<Vector3>& pUV,
+                                        std::ostream& out);
+
 // pUV gives UV coordinates at *vertices*.
 void writeMeshWithProjectiveTextureCoords(
     const SimplePolygonMesh& mesh,

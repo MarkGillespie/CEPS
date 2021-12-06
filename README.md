@@ -51,6 +51,7 @@ The script takes a variety of arguments.
 |`--ffield=a_mesh.ffield`| Use cones from an [MPZ](http://vcg.isti.cnr.it/Publications/2014/MPZ14/)-style cross field|
 |`--greedyConeMaxU=5`| Maximum allowed log scale factor when placing cones (lower value = lower distortion in final parameterization, default value=5)|
 |`--outputMeshFilename=a_mesh.obj`| File to save output mesh to, along with homogeneous texture coordinates|
+|`--outputLinearTextureFilename=a_mesh.obj`| File to save output mesh to, along with linear texture coordinates (aka ordinary uv coordinates)|
 |`--outputMatrixFilename=a_matrix.spmat`| File to save output interpolation matrix to |
 |`--outputLogFilename=a_log.tsv`| File to save logs (timing + injectivty) to |
 |`--useExactCones`| Do not lump together nearby cones in the ffield input, if any. Cones prescribed via `--curvatures` or `--scaleFactors` are never lumped|
@@ -73,6 +74,11 @@ Curvatures and scale factors should be given in text files where each line has a
 In the curvatures file, all vertices must be accompanied by a desired curvature. In the scale factors file, vertices may appear without any prescribed scale factor---such vertices are assigned a scale factor of 0.
 
 The interpolation matrix is exported as a list of triplets. Explicitly, each line of the output file contains the row index, column index, and value of some entry of the matrix. These indices are 1-indexed to make it easy to load in  [Matlab](https://www.mathworks.com/help/matlab/ref/spconvert.html).
+
+### Homogeneous vs Linear texture coordinates
+The parameterizations that we compute look smoother when visualized projectively (see Fig 3 from the paper). Thus by default, we output texture coordinates in _homogeneous coordinates_---rather than the standard uv coordinates, we output 3-dimensional uvw texture coordinates. To visualize these textures you can interpolate the 3d coordinates linearly across each triangle. Then, for each pixel you perform a homogeneous divide, dividing the first two coordinates by the last coordinate to obtain the final uv texture coordinates. This can be done e.g. in a shader or via shader nodes in blender (see `ProjectiveInterpolation.blend` for an example).
+
+If you want ordinary uv coordinates rather than homogeneous texture coordinates, you can set the `--outputLinearTextureFilename` flag or switch the 'Saved Texture Type' to `Linear` in the GUI.
 
 ## Visualization
 The `render/` directory contains a blender file (`ProjectiveInterpolation.blend`) that can load and visualize meshes that you parameterize. The blender file should open to a Python script in the `Scripting` workspace. You can load your own uniformized mesh by changing the mesh name in the script and clicking on `Run Script`. This will load your model and apply a correctly-interpolated checkerboard texture.
