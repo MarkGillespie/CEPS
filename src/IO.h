@@ -67,6 +67,11 @@ void saveMatrix(Eigen::SparseMatrix<T>& matrix, std::string filename);
 template <typename T>
 void saveMatrix(Eigen::SparseMatrix<T>& matrix, std::ostream& out);
 
+void writeVertexMap(ManifoldSurfaceMesh& mesh, const VertexData<int>& vertexMap,
+                    std::string filename);
+
+void writeVertexMap(ManifoldSurfaceMesh& mesh, const VertexData<int>& vertexMap,
+                    std::ostream& out);
 
 //== Read cross fields from MPZ
 // Read the intrinsic cross field description. Output cross field is encoded by

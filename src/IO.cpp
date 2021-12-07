@@ -243,6 +243,27 @@ void writeMeshWithOrdinaryTextureCoords(
     }
 }
 
+void writeVertexMap(ManifoldSurfaceMesh& mesh, const VertexData<int>& vertexMap,
+                    std::string filename) {
+    std::cout << "Writing vertex index map to: " << filename << std::endl;
+
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        throw std::runtime_error("failed to open output file " + filename);
+    }
+
+    writeVertexMap(mesh, vertexMap, outFile);
+
+    outFile.close();
+}
+
+void writeVertexMap(ManifoldSurfaceMesh& mesh, const VertexData<int>& vertexMap,
+                    std::ostream& out) {
+    for (Vertex v : mesh.vertices()) {
+        out << vertexMap[v] << std::endl;
+    }
+}
+
 FaceData<Vector2> readFFieldIntrinsic(std::string filename,
                                       ManifoldSurfaceMesh& mesh,
                                       VertexPositionGeometry& geo) {

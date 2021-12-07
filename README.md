@@ -53,6 +53,7 @@ The script takes a variety of arguments.
 |`--outputMeshFilename=a_mesh.obj`| File to save output mesh to, along with homogeneous texture coordinates|
 |`--outputLinearTextureFilename=a_mesh.obj`| File to save output mesh to, along with linear texture coordinates (aka ordinary uv coordinates)|
 |`--outputMatrixFilename=a_matrix.spmat`| File to save output interpolation matrix to |
+|`--outputVertexMapFilename=vertex_map.txt`| File to save vertex map to. For each vertex of the input mesh, the vertex map gives its index in the output mesh |
 |`--outputLogFilename=a_log.tsv`| File to save logs (timing + injectivty) to |
 |`--useExactCones`| Do not lump together nearby cones in the ffield input, if any. Cones prescribed via `--curvatures` or `--scaleFactors` are never lumped|
 |`--noFreeBoundary`| Do not impose minimal-area-distortion boundary conditions (useful, e.g. if prescribing polygonal boundary conditions with the `--curvatures` option)|

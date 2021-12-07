@@ -98,10 +98,21 @@ parameterize(ManifoldSurfaceMesh& mesh, VertexPositionGeometry& geo,
         // Remove imaginary faces from front face list
         for (size_t iF : imaginaryFaceIndices) frontFaceIndices.erase(iF);
 
-        return parameterizeHelper(*doubledMesh, *doubledGeometry,
-                                  prescribedScaleFactors, prescribedCurvatures,
-                                  frontFaceIndices, viz, checkInjectivity,
-                                  verbose);
+        ParameterizationResult result = parameterizeHelper(
+            *doubledMesh, *doubledGeometry, prescribedScaleFactors,
+            prescribedCurvatures, frontFaceIndices, viz, checkInjectivity,
+            verbose);
+
+        // Reindex result.parentMap
+        VertexData<int> correctedParentMap(mesh);
+        VertexData<size_t> origIndex = mesh.getVertexIndices();
+        for (Vertex v : mesh.vertices()) {
+            Vertex vA             = doubledMesh->vertex(origIndex[v]);
+            correctedParentMap[v] = result.parentMap[vA];
+        }
+        result.parentMap = correctedParentMap;
+
+        return result;
     }
 }
 

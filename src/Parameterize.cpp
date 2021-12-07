@@ -37,6 +37,7 @@ polyscope::SurfaceMesh* psMesh;
 
 const int IM_STR_LEN = 128;
 static char meshSaveName[IM_STR_LEN];
+static char indexMapSaveName[IM_STR_LEN];
 
 enum class InterpolationType { PROJECTIVE, LINEAR };
 int currentInterpolationType                       = 0;
@@ -83,6 +84,8 @@ void myCallback() {
         std::cout << "nInvertedTriangles: " << result.nFlippedTriangles
                   << "\tnZeroAreaTriangles: " << result.nZeroAreaTriangles
                   << std::endl;
+
+        psMesh->addVertexScalarQuantity("parentMap", result.parentMap);
     }
 
     if (ImGui::Button("Uniformize")) {
@@ -119,6 +122,14 @@ void myCallback() {
     ImGui::Combo("Saved Texture Type", &currentInterpolationType,
                  prettyInterpolationTypeOptions,
                  IM_ARRAYSIZE(interpolationTypeOptions));
+    ImGui::Separator();
+    ImGui::InputText("###IndexMapSaveName", indexMapSaveName,
+                     IM_ARRAYSIZE(indexMapSaveName));
+    ImGui::SameLine();
+    if (ImGui::Button("Save Vertex Map")) {
+        writeVertexMap(*mesh, result.parentMap,
+                       std::string(indexMapSaveName) + ".txt");
+    }
 }
 
 int main(int argc, char** argv) {
@@ -138,21 +149,27 @@ int main(int argc, char** argv) {
 
     args::ValueFlag<std::string> outputMeshFilename(
         parser, "string",
-        "file to save output mesh to, along with homogeneous texture "
+        "obj file to save output mesh to, along with homogeneous texture "
         "coordinates",
         {"outputMeshFilename"});
     args::ValueFlag<std::string> outputLinearTextureFilename(
         parser, "string",
-        "file to save output mesh to, along with linear texture coordinates "
+        "obj file to save output mesh to, along with linear texture "
+        "coordinates "
         "(aka ordinary uv coordinates)",
         {"outputLinearTextureFilename"});
     args::ValueFlag<std::string> outputMatrixFilename(
-        parser, "string", "file to save the output interpolation matrix to",
+        parser, "string",
+        "spmat file to save the output interpolation matrix to",
         {"outputMatrixFilename"});
+    args::ValueFlag<std::string> outputVertexMapFilename(
+        parser, "string",
+        "txt file to save vertex map to. For each vertex of the input mesh, "
+        "the vertex map gives its index in the output mesh",
+        {"outputVertexMapFilename"});
     args::ValueFlag<std::string> outputLogFilename(
-        parser, "string", "file to save logs (timing + injectivity) to",
+        parser, "string", "csv file to save logs (timing + injectivity) to",
         {"outputLogFilename"});
-
     args::Flag useExactCones(parser, "exactCones",
                              "Use exact cones from ffield (no lumping)",
                              {"exactCones"});
@@ -186,7 +203,7 @@ int main(int argc, char** argv) {
     }
 
     if (version) {
-        std::cout << "parameterize version 1.1" << std::endl;
+        std::cout << "parameterize version 1.2" << std::endl;
         return 0;
     }
 
@@ -222,16 +239,21 @@ int main(int argc, char** argv) {
 
     std::string nicename = polyscope::guessNiceNameFromPath(filename);
 
-    std::string saveNameGuess = nicename + "_ceps";
+    std::string saveNameGuess  = nicename + "_ceps";
+    std::string indexNameGuess = nicename + "_ceps_vtx_map";
     // Initialize ImGui's C-string to our niceName
     // https://stackoverflow.com/a/347959
     // truncate saveNameGuess to fit in ImGui's string
     if (saveNameGuess.length() + 1 > IM_STR_LEN)
         saveNameGuess.resize(IM_STR_LEN - 1);
+    if (indexNameGuess.length() + 1 > IM_STR_LEN)
+        indexNameGuess.resize(IM_STR_LEN - 1);
     // copy over string contents
     std::copy(saveNameGuess.begin(), saveNameGuess.end(), meshSaveName);
+    std::copy(indexNameGuess.begin(), indexNameGuess.end(), indexMapSaveName);
     // null-terminate string
-    meshSaveName[saveNameGuess.size()] = '\0';
+    meshSaveName[saveNameGuess.size()]      = '\0';
+    indexMapSaveName[indexNameGuess.size()] = '\0';
 
     bool loadedCones = false;
     // Read prescribed curvatures and scale factors if present
@@ -398,6 +420,11 @@ int main(int argc, char** argv) {
             writeMeshWithOrdinaryTextureCoords(
                 result.mesh, result.param,
                 args::get(outputLinearTextureFilename));
+        }
+
+        if (outputVertexMapFilename) {
+            writeVertexMap(*mesh, result.parentMap,
+                           args::get(outputVertexMapFilename));
         }
 
         if (outputMatrixFilename) {
