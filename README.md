@@ -78,7 +78,7 @@ The interpolation matrix is exported as a list of triplets. Explicitly, each lin
 ### Homogeneous vs Linear texture coordinates
 The parameterizations that we compute look smoother when visualized projectively (see Fig 3 from the paper). Thus by default, we output texture coordinates in _homogeneous coordinates_---rather than the standard uv coordinates, we output 3-dimensional uvw texture coordinates. To visualize these textures you can interpolate the 3d coordinates linearly across each triangle. Then, for each pixel you perform a homogeneous divide, dividing the first two coordinates by the last coordinate to obtain the final uv texture coordinates. This can be done e.g. in a shader or via shader nodes in blender (see `ProjectiveInterpolation.blend` for an example).
 
-If you want ordinary uv coordinates rather than homogeneous texture coordinates, you can set the `--outputLinearTextureFilename` flag or switch the 'Saved Texture Type' to `Linear` in the GUI.
+If you want ordinary uv coordinates rather than homogeneous texture coordinates, you can set the `--outputLinearTextureFilename` flag or switch the 'Saved Texture Type' to `Linear`
 
 ## Visualization
 The `render/` directory contains a blender file (`ProjectiveInterpolation.blend`) that can load and visualize meshes that you parameterize. The blender file should open to a Python script in the `Scripting` workspace. You can load your own uniformized mesh by changing the mesh name in the script and clicking on `Run Script`. This will load your model and apply a correctly-interpolated checkerboard texture.
@@ -103,6 +103,7 @@ Then you can spherically-uniformize meshes by running `bin/spherical_uniformize 
 |flag | purpose|
 | ------------- |-------------| 
 |`--outputMeshFilename=a_mesh.obj`| File to save output mesh to, along with its homogeneous spherical parameterization|
+|`--outputLinearTextureFilename=a_mesh.obj`| File to save output mesh to, along with linear texture coordinates (aka ordinary uv coordinates)|
 |`--outputMatrixFilename=a_matrix.spmat`| File to save output interpolation matrix to |
 |`--outputLogFilename=a_log.tsv`| File to save logs (timing + injectivty) to |
 |`--viz`| Show the GUI |

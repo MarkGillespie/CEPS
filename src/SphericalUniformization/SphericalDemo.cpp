@@ -31,6 +31,12 @@ polyscope::SurfaceMesh* psMesh;
 const int IM_STR_LEN = 128;
 static char meshSaveName[IM_STR_LEN];
 
+enum class InterpolationType { PROJECTIVE, LINEAR };
+int currentInterpolationType                       = 0;
+const char* prettyInterpolationTypeOptions[]       = {"Homogeneous", "Linear"};
+const InterpolationType interpolationTypeOptions[] = {
+    InterpolationType::PROJECTIVE, InterpolationType::LINEAR};
+
 // A user-defined callback, for creating control panels (etc)
 // Use ImGUI commands to build whatever you want here, see
 // https://github.com/ocornut/imgui/blob/master/imgui.h
@@ -46,11 +52,22 @@ void myCallback() {
                      IM_ARRAYSIZE(meshSaveName));
     ImGui::SameLine();
     if (ImGui::Button("Save textured mesh")) {
-        writeMeshWithProjectiveTextureCoords(
-            result.mesh, result.param, std::string(meshSaveName) + ".obj");
+        switch (interpolationTypeOptions[currentInterpolationType]) {
+        case InterpolationType::PROJECTIVE:
+            writeMeshWithProjectiveTextureCoords(
+                result.mesh, result.param, std::string(meshSaveName) + ".obj");
+            break;
+        case InterpolationType::LINEAR:
+            writeMeshWithOrdinaryTextureCoords(
+                result.mesh, result.param, std::string(meshSaveName) + ".obj");
+            break;
+        }
         saveMatrix(result.interpolationMatrix,
                    std::string(meshSaveName) + ".spmat");
     }
+    ImGui::Combo("Saved Texture Type", &currentInterpolationType,
+                 prettyInterpolationTypeOptions,
+                 IM_ARRAYSIZE(interpolationTypeOptions));
 }
 
 int main(int argc, char** argv) {
@@ -60,11 +77,20 @@ int main(int argc, char** argv) {
     args::Positional<std::string> meshFilename(
         parser, "mesh", "Mesh to be processed (required).");
     args::ValueFlag<std::string> outputMeshFilename(
-        parser, "string", "output mesh filename", {"outputMeshFilename"});
+        parser, "string",
+        "file to save output mesh to, along with homogeneous texture "
+        "coordinates",
+        {"outputMeshFilename"});
+    args::ValueFlag<std::string> outputLinearTextureFilename(
+        parser, "string",
+        "file to save output mesh to, along with linear texture coordinates "
+        "(aka ordinary uv coordinates)",
+        {"outputLinearTextureFilename"});
     args::ValueFlag<std::string> outputMatrixFilename(
-        parser, "string", "output matrix filename", {"outputMatrixFilename"});
+        parser, "string", "file to save the output interpolation matrix to",
+        {"outputMatrixFilename"});
     args::ValueFlag<std::string> outputLogFilename(
-        parser, "string", "output log filename", {"outputLogFilename"});
+        parser, "string", "file to save logs to", {"outputLogFilename"});
     args::Flag viz(parser, "viz", "Use polyscope GUI", {"viz"});
     args::ValueFlag<std::string> beVerbose(
         parser, "verbose",
@@ -198,6 +224,12 @@ int main(int argc, char** argv) {
         if (outputMeshFilename) {
             writeMeshWithProjectiveTextureCoords(result.mesh, result.param,
                                                  args::get(outputMeshFilename));
+        }
+
+        if (outputLinearTextureFilename) {
+            writeMeshWithOrdinaryTextureCoords(
+                result.mesh, result.param,
+                args::get(outputLinearTextureFilename));
         }
 
         if (outputMatrixFilename) {

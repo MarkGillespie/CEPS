@@ -52,6 +52,14 @@ void writeMeshWithProjectiveTextureCoords(
     const SimplePolygonMesh& mesh,
     const std::vector<std::array<double, 4>>& pUV, std::ostream& out);
 
+void writeMeshWithOrdinaryTextureCoords(
+    const SimplePolygonMesh& mesh,
+    const std::vector<std::array<double, 4>>& pUV, std::string filename);
+
+void writeMeshWithOrdinaryTextureCoords(
+    const SimplePolygonMesh& mesh,
+    const std::vector<std::array<double, 4>>& pUV, std::ostream& out);
+
 //== Save a sparse matrix as a list of triplets. Uses 1-indexing
 template <typename T>
 void saveMatrix(Eigen::SparseMatrix<T>& matrix, std::string filename);

@@ -196,6 +196,53 @@ void writeMeshWithProjectiveTextureCoords(
     }
 }
 
+void writeMeshWithOrdinaryTextureCoords(
+    const SimplePolygonMesh& mesh,
+    const std::vector<std::array<double, 4>>& pUV, std::string filename) {
+
+    std::cout << "Writing mesh to: " << filename << std::endl;
+
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        throw std::runtime_error("failed to open output file " + filename);
+    }
+
+    writeMeshWithOrdinaryTextureCoords(mesh, pUV, outFile);
+    outFile.close();
+}
+
+void writeMeshWithOrdinaryTextureCoords(
+    const SimplePolygonMesh& mesh,
+    const std::vector<std::array<double, 4>>& pUV, std::ostream& out) {
+
+    // Write headers
+    out << "#  vertices: " << mesh.vertexCoordinates.size() << std::endl;
+    out << "#     faces: " << mesh.polygons.size() << std::endl;
+    out << std::endl;
+
+    // Write vertices
+    for (Vector3 p : mesh.vertexCoordinates) {
+        out << "v " << p.x << " " << p.y << " " << p.z << std::endl;
+    }
+
+
+    // Write texture coords
+    for (size_t iC = 0; iC < pUV.size(); iC++) {
+        Vector3 uv{pUV[iC][0] / pUV[iC][3], pUV[iC][1] / pUV[iC][3],
+                   pUV[iC][2] / pUV[iC][3]};
+        out << "vt " << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+    }
+
+    // Write faces
+    for (const std::vector<size_t>& face : mesh.polygons) {
+        out << "f";
+        for (size_t ind : face) {
+            out << " " << (ind + 1) << "/" << (ind + 1);
+        }
+        out << std::endl;
+    }
+}
+
 FaceData<Vector2> readFFieldIntrinsic(std::string filename,
                                       ManifoldSurfaceMesh& mesh,
                                       VertexPositionGeometry& geo) {
