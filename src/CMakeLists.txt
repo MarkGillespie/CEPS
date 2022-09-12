@@ -36,6 +36,15 @@ target_include_directories(parameterize PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(parameterize PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../deps/polyscope/deps/args/")
 target_link_libraries(parameterize polyscope geometry-central CEPS)
 
+add_executable(
+  generate_cuts
+  GenerateCuts.cpp
+  )
+target_include_directories(generate_cuts PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+# borrow args.hxx directly from polyscope
+target_include_directories(generate_cuts PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../deps/polyscope/deps/args/")
+target_link_libraries(generate_cuts polyscope geometry-central CEPS)
+
 option(SPHERICAL_UNIFORMIZATION "Build spherical uniformizer" OFF)
 option(PACKAGE_TESTS "Build the cone flattening tests" OFF)
 
