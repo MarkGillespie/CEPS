@@ -60,15 +60,8 @@ void psDrawCuts() {
     edgeInds.reserve(cuts.size());
     geometry->requireVertexPositions();
     for (Edge ij : cuts) {
-        // if (ij == Edge()) {
-        //     std::cout << "WARNING: invalid edge" << std::endl;
-        //     continue;
-        // }
         Vertex i = ij.halfedge().tailVertex();
         Vertex j = ij.halfedge().tipVertex();
-        // WATCH3(i, j, mesh->nVertices());
-        // WATCH(geometry->vertexPositions[i]);
-        // WATCH(geometry->vertexPositions[j]);
         edgeInds.push_back({nodePositions.size(), nodePositions.size() + 1});
         nodePositions.push_back(geometry->vertexPositions[i]);
         nodePositions.push_back(geometry->vertexPositions[j]);
@@ -172,7 +165,6 @@ void myCallback() {
         cutAlongCuts();
         psDrawCutMesh();
 
-        WATCH(cutMesh->eulerCharacteristic());
         WATCH(cutMesh->isManifold());
         WATCH(cutMesh->nBoundaryLoops());
 
@@ -260,14 +252,11 @@ int main(int argc, char** argv) {
     if (meshFilename) {
         filename = args::get(meshFilename);
     } else {
-        filename = "../../meshes/thingi10k/nicks_bad_meshes/719791.ply";
-        // TODO: better defaults
-        // std::cout << "Please provide a mesh file as input." << std::endl;
-        // std::cout << parser;
-        // return 1;
+        std::cout << "Please provide a mesh file as input." << std::endl;
+        std::cout << parser;
+        return 1;
     }
 
-    // TODO: better defaults
     verbose = args::get(viz);
     if (beVerbose) {
         std::string verbosity = args::get(beVerbose);
@@ -308,12 +297,25 @@ int main(int argc, char** argv) {
     // Read cones from prescribed curvatures/scale factors if present
     if (conesFilename) {
         loadedCones = true;
-        std::cout << "TODO: cone reading not implemented yet" << std::endl;
-        // std::pair<size_t, double> prescribedCurvatureInput =
-        //     readPrescribedConeAngles(args::get(curvaturesFilename));
-        // for (const std::pair<size_t, double>& c :
-        // prescribedCurvatureInput)
-        //     cones.emplace_back(mesh->vertex(c.first));
+
+        std::ifstream inStream(args::get(conesFilename), std::ios::binary);
+
+        cones.clear();
+        std::string line;
+        while (std::getline(inStream, line)) {
+            std::stringstream ss(line);
+            size_t iV;
+            ss >> iV;
+            if (iV < mesh->nVertices()) {
+                cones.push_back(mesh->vertex(iV));
+            } else {
+                std::cout << "Error while reading cones from "
+                          << args::get(conesFilename)
+                          << " : invalid vertex index " << iV
+                          << " (mesh has only " << mesh->nVertices()
+                          << " vertices)" << std::endl;
+            }
+        }
     }
     if (curvaturesFilename) {
         loadedCones = true;
@@ -346,8 +348,7 @@ int main(int argc, char** argv) {
         uTol = args::get(greedyConeMaxU);
     }
 
-    // TODO: better defaults
-    if (args::get(viz) || true) {
+    if (args::get(viz)) {
         // Initialize polyscope
         polyscope::init();
 
@@ -364,7 +365,12 @@ int main(int argc, char** argv) {
         std::cout << "Loaded mesh " << filename << std::endl;
         std::cout << "nBoundaryLoops: " << mesh->nBoundaryLoops() << std::endl;
         std::cout << "Genus: " << mesh->genus() << std::endl;
-        std::cout << "Euler characteristic: " << mesh->eulerCharacteristic()
+
+        int explicitEulerCharacteristic =
+            static_cast<int>(static_cast<long long int>(mesh->nVertices()) -
+                             static_cast<long long int>(mesh->nEdges()) +
+                             static_cast<long long int>(mesh->nFaces()));
+        std::cout << "Euler characteristic: " << explicitEulerCharacteristic
                   << std::endl;
 
         // Give control to the polyscope gui
@@ -395,28 +401,35 @@ int main(int argc, char** argv) {
             logger.log("nVertices", mesh->nVertices());
         }
 
-        double duration;
-        if (loadedCones) {
-            std::clock_t start = std::clock();
-
-            bool viz = false;
-            generateGoodCuts();
-            duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        } else {
-            std::clock_t start = std::clock();
-
-            bool viz = false;
+        if (!loadedCones) {
             generateRandomCones();
-            generateGoodCuts();
-            duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         }
+        double cutFindingDuration;
+        double meshCutingDuration;
+
+        std::clock_t start = std::clock();
+        generateGoodCuts();
+        cutFindingDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
+        start = std::clock();
+        cutAlongCuts();
+        meshCutingDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 
         if (logStats) {
-            logger.log("duration", duration);
+            int explicitEulerCharacteristic = static_cast<int>(
+                static_cast<long long int>(cutMesh->nVertices()) -
+                static_cast<long long int>(cutMesh->nEdges()) +
+                static_cast<long long int>(cutMesh->nFaces()));
+
+            logger.log("cutFindingDuration", cutFindingDuration);
+            logger.log("meshCutingDuration", meshCutingDuration);
+            logger.log("nBoundaryLoops", cutMesh->nBoundaryLoops());
+            logger.log("eulerCharacteristic", explicitEulerCharacteristic);
         }
 
         if (outputMeshFilename) {
-            // TODO: write code to save mesh
+            writeSurfaceMesh(*cutMesh, *cutGeometry,
+                             args::get(outputMeshFilename));
         }
 
         if (outputLogFilename) {
