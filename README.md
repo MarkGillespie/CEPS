@@ -3,8 +3,7 @@
 C++ demo for "[Discrete Conformal Equivalence of Polyhedral Surfaces](http://www.cs.cmu.edu/~kmcrane/Projects/CEPS/index.html)" by [Mark Gillespie](https://www.markjgillespie.com), [Boris Springborn](http://page.math.tu-berlin.de/~springb/), and [Keenan Crane](http://www.cs.cmu.edu/~kmcrane/) at SIGGRAPH 2021.
 
 PDF: [link](http://www.cs.cmu.edu/~kmcrane/Projects/CEPS/CEPS.pdf)  
-Talk (20 minutes): [link](https://www.youtube.com/watch?v=wwuHFUQLlWA)  
-Talk (5 minutes): [link](https://www.youtube.com/watch?v=W0iBHF5-r-M)
+Talk: [20 minute version](https://www.youtube.com/watch?v=wwuHFUQLlWA), [5 minute version](https://www.youtube.com/watch?v=W0iBHF5-r-M)
 
 ![Examples of parameterized meshes](media/teaser.png)
 
